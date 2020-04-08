@@ -6,37 +6,70 @@
 (defn escaped-string [s] (into [] (concat [:STRING] (string/split s #""))))
 
 (deftest dialogflow-log-string
-  (testing "empty string"
-    (is (= [:S [:STRING]] (dialogflow-log "\"\""))))
+  (testing "string - empty"
+    (is (= "" (from-dialogflow "\"\""))))
 
   (testing "string"
-    (is (= [:S [:STRING "a"]] (dialogflow-log "\"a\""))))
+    (is (= "a" (from-dialogflow "\"a\""))))
 
-  (testing "string"
-    (is (= [:S [:STRING "a" "b"]] (dialogflow-log "\"ab\""))))
+  (testing "string - multiple characters"
+    (is (= "ab" (from-dialogflow "\"ab\""))))
 
   (testing "string - alphabets"
     (is (=
-      [:S (escaped-string "abcdefghijklmnopqrstuvwxuzABCDEFGHIJKLMNOPQRSTUVWXUZ")]
-      (dialogflow-log "\"abcdefghijklmnopqrstuvwxuzABCDEFGHIJKLMNOPQRSTUVWXUZ\""))))
+      "abcdefghijklmnopqrstuvwxuzABCDEFGHIJKLMNOPQRSTUVWXUZ"
+      (from-dialogflow "\"abcdefghijklmnopqrstuvwxuzABCDEFGHIJKLMNOPQRSTUVWXUZ\""))))
 
   (testing "string - digits"
-    (is (= [:S (escaped-string "0123456789")] (dialogflow-log "\"0123456789\""))))
+    (is (= "0123456789" (from-dialogflow "\"0123456789\""))))
 
   (doseq [symbol "`~!@#$%^&*()-_=+|[]{};:',.<>/?"]
     (let [s (str symbol)]
       (testing (str "string - symbols (" s ")")
-        (is (= [:S [:STRING s]] (dialogflow-log (str "\"" s "\"")))))))
+        (is (= s (from-dialogflow (str "\"" s "\"")))))))
 
   (testing "string - space ( )"
-    (is (= [:S [:STRING " "]] (dialogflow-log "\" \""))))
+    (is (= " " (from-dialogflow "\" \""))))
 
   (testing "string - symbols (\\)"
-    (is (= [:S [:STRING "\\"]] (dialogflow-log "\"\\\""))))
+    (is (= "\\" (from-dialogflow "\"\\\""))))
 
   (testing "string - symbols (\")"
-    (is (= [:S [:STRING "\""]] (dialogflow-log "\"\\\"\"")))))
+    (is (= "\"" (from-dialogflow "\"\\\"\"")))))
 
 (deftest dialogflow-log-number
-  (testing "number"
-    (is (= [:S [:NUMBER "0"]] (dialogflow-log "0")))))
+  (testing "number - single digit"
+    (is (= 0 (from-dialogflow "0"))))
+
+  (testing "number - multiple digits 1-5"
+    (is (= 12345 (from-dialogflow "12345"))))
+
+  (testing "number - multiple digits 5-0"
+    (is (= 567890 (from-dialogflow "567890"))))
+
+  (testing "number - float point"
+    (is (= 0.9 (from-dialogflow "0.9"))))
+
+  (testing "number - float point"
+    (is (= 0.0 (from-dialogflow "0.0"))))
+  )
+
+(deftest dialogflow-log-object
+  (testing "object - empty"
+    (is (= {} (from-dialogflow "{}"))))
+
+  (testing "object - single key"
+    (is (= {"a" "b"} (from-dialogflow "{a:\"b\"}"))))
+
+  (testing "object - multiple keys"
+    (is (= {"a" "b" "c" "d"} (from-dialogflow "{a:\"b\"\nc:\"d\"}"))))
+
+  (testing "object - object value"
+    (is (= {"a" {}} (from-dialogflow "{a {}}"))))
+
+  (testing "object - without braces"
+    (is (= {"a" "b"} (from-dialogflow "a:\"b\""))))
+
+  (testing "object - key format"
+    (is (= {"abcdefghijklmnopqrstuvwxyz0123456789_" 3} (from-dialogflow "abcdefghijklmnopqrstuvwxyz0123456789_:3"))))
+  )

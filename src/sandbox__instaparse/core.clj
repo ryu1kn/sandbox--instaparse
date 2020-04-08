@@ -2,16 +2,19 @@
   (:require [instaparse.core :as insta] [clojure.string :as s])
   (:gen-class))
 
-(def as-and-bs
-  (insta/parser
-    "S = AB*
-     AB = A B
-     A = 'a'+
-     B = 'b'+
-    "))
-
 (def dialogflow-log
   (insta/parser "dialogflow-log.bnf"))
 
+(defn from-dialogflow [text]
+  (->> text
+       (dialogflow-log)
+       (insta/transform {
+         :S identity
+         :STRING str
+         :NUMBER read-string
+         :SYMBOL str
+         :PAIRS hash-map
+       })))
+
 (defn -main [& args]
-  (-> args (first) (slurp) (s/trim) (as-and-bs) (println)))
+  (-> args (first) (slurp) (s/trim) (from-dialogflow) (println)))
