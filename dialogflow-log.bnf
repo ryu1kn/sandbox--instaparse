@@ -1,0 +1,10 @@
+S ::= STRING
+    | NUMBER
+
+STRING ::= <'"'> (DOUBLE_QUOTE | NON_DOUBLE_QUOTE)* <'"'>
+
+<DOUBLE_QUOTE> ::= <'\\'> '"'
+
+<NON_DOUBLE_QUOTE> ::= #'[a-zA-Z0-9`~!@#$%^&*()-_=+|\[\]{};:\',.<>/?\\ ]'
+
+NUMBER ::= '0'
